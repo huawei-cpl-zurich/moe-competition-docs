@@ -5,6 +5,7 @@ Read the Docs source for the MoE load-balancing competition background material.
 The documentation covers:
 
 - DeepSeek model-family overview and architecture
+- Transformer architecture fundamentals
 - Mixture-of-Experts concepts
 - DeepSeekMoE routing and load-balancing mechanisms
 - How this background relates to the competition simulator

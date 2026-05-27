@@ -12,6 +12,7 @@ models route tokens, and what the simulator metrics are intended to capture.
 :caption: Contents
 
 deepseek-overview
+transformers-intro
 mixture-of-experts
 deepseek-moe-routing
 competition-context

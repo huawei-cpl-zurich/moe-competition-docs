@@ -64,3 +64,42 @@ Lower is better. A value of 1 is perfectly balanced.
 Transmit amount counts changed expert placements during redeployment. Lower is better. A policy
 with zero transmit amount is stable but may leave severe load imbalance; a policy with excessive
 movement may improve PAR but be impractical to serve.
+
+## Composite Score
+
+The Codabench leaderboard uses `composite_score` as the primary score. Higher is better.
+
+For each evaluated case, the scorer compares the submission against the DS-EPLB baseline for the
+same dataset, model, and EP size:
+
+```text
+par_ratio = ds_eplb_mean_par / submission_mean_par
+transmit_ratio = submission_transmit_amount / ds_eplb_transmit_amount
+over_transmit_penalty = max(0, transmit_ratio - 1)
+
+case_score = 100 * par_ratio - 25 * over_transmit_penalty
+```
+
+The final leaderboard score is the arithmetic mean over all evaluated cases:
+
+```text
+composite_score = mean(case_score over evaluated cases)
+```
+
+This means:
+
+- matching DS-EPLB PAR with no excess transmission gives about 100 points for that case;
+- improving PAR over DS-EPLB gives more than 100 points;
+- worse PAR gives fewer than 100 points;
+- transmission is penalized only when it exceeds DS-EPLB for the same case;
+- using less transmission than DS-EPLB is visible in `transmit_vs_ds_eplb`, but it does not add an
+  extra bonus to `composite_score`.
+
+The raw leaderboard columns are still reported so participants can inspect the tradeoff:
+
+```text
+mean_par
+transmit_amount
+par_vs_ds_eplb
+transmit_vs_ds_eplb
+```
