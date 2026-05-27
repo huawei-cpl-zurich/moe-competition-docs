@@ -75,9 +75,9 @@ same dataset, model, and EP size:
 ```text
 par_ratio = ds_eplb_mean_par / submission_mean_par
 transmit_ratio = submission_transmit_amount / ds_eplb_transmit_amount
-over_transmit_penalty = max(0, transmit_ratio - 1)
+transmit_adjustment = 25 * (1 - transmit_ratio)
 
-case_score = 100 * par_ratio - 25 * over_transmit_penalty
+case_score = 100 * par_ratio + transmit_adjustment
 ```
 
 The final leaderboard score is the arithmetic mean over all evaluated cases:
@@ -91,9 +91,9 @@ This means:
 - matching DS-EPLB PAR with no excess transmission gives about 100 points for that case;
 - improving PAR over DS-EPLB gives more than 100 points;
 - worse PAR gives fewer than 100 points;
-- transmission is penalized only when it exceeds DS-EPLB for the same case;
-- using less transmission than DS-EPLB is visible in `transmit_vs_ds_eplb`, but it does not add an
-  extra bonus to `composite_score`.
+- using less transmission than DS-EPLB gives a bonus;
+- zero transmission gives a +25 point transmit bonus for that case;
+- transmission above DS-EPLB gives a linear penalty.
 
 The raw leaderboard columns are still reported so participants can inspect the tradeoff:
 
