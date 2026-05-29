@@ -67,33 +67,51 @@ movement may improve PAR but be impractical to serve.
 
 ## Composite Score
 
-The Codabench leaderboard uses `composite_score` as the primary score. Higher is better.
+The Codabench leaderboard uses `composite_score` as the primary score. Higher is better. The score
+models runtime as worst-device compute time plus expert-transfer overhead.
 
-For each evaluated case, the scorer compares the submission against the DS-EPLB baseline for the
+The modeled runtime is:
+
+```text
+modeled_time = compute_time + transfer_time
+compute_time = balanced_compute_seconds * mean_par
+transfer_time = transmit_amount * expert_bytes / bandwidth_bytes_per_second
+```
+
+The fixed hardware assumptions are:
+
+```text
+balanced_compute_seconds = 60.0
+expert_bytes = 88_080_384
+bandwidth_bytes_per_second = 900_000_000_000
+```
+
+These correspond to BF16 DeepSeek-style experts with approximately
+`3 * 7168 * 2048` parameters per expert and an H100-class high-performance interconnect.
+
+For each evaluated case, the scorer compares modeled runtime against the DS-EPLB baseline for the
 same dataset, model, and EP size:
 
 ```text
-par_ratio = ds_eplb_mean_par / submission_mean_par
-transmit_ratio = submission_transmit_amount / ds_eplb_transmit_amount
-transmit_adjustment = 25 * (1 - transmit_ratio)
+submission_modeled_time =
+    60.0 * submission_mean_par
+    + submission_transmit_amount * 88_080_384 / 900_000_000_000
 
-case_score = 100 * par_ratio + transmit_adjustment
-```
+baseline_modeled_time =
+    60.0 * ds_eplb_mean_par
+    + ds_eplb_transmit_amount * 88_080_384 / 900_000_000_000
 
-The final leaderboard score is the arithmetic mean over all evaluated cases:
-
-```text
+case_score = 100 * baseline_modeled_time / submission_modeled_time
 composite_score = mean(case_score over evaluated cases)
 ```
 
 This means:
 
-- matching DS-EPLB PAR with no excess transmission gives about 100 points for that case;
-- improving PAR over DS-EPLB gives more than 100 points;
-- worse PAR gives fewer than 100 points;
-- using less transmission than DS-EPLB gives a bonus;
-- zero transmission gives a +25 point transmit bonus for that case;
-- transmission above DS-EPLB gives a linear penalty.
+- `100` means equal modeled runtime to DS-EPLB for that case;
+- higher than `100` means faster modeled runtime than DS-EPLB;
+- lower than `100` means slower modeled runtime than DS-EPLB;
+- lower PAR helps by reducing compute time;
+- lower transmit helps by reducing transfer time.
 
 The raw leaderboard columns are still reported so participants can inspect the tradeoff:
 
