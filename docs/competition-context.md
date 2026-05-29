@@ -29,6 +29,10 @@ layer -> device -> expert slot -> logical expert id
 If redundant experts are available, the table can contain multiple physical copies of hot logical
 experts. This lets load for that expert be divided across devices.
 
+When a policy requests redeployment, only the layers in its priority list are applied. For each
+listed layer, the deployment table row is a full replacement for every physical slot in that layer,
+not just a list of replicas to add.
+
 ## Evaluation Loop
 
 At a high level:
@@ -37,7 +41,7 @@ At a high level:
 2. It computes PAR for each iteration from the current deployment and hotness.
 3. After a collection window, the algorithm receives recent hotness.
 4. The algorithm proposes a new deployment and a layer redeployment order.
-5. The simulator charges transmit amount for changed expert slots.
+5. The simulator charges transmit amount for changed expert slots, compared slot by slot.
 6. The loop repeats as hotness changes.
 
 ## What Makes A Good Policy

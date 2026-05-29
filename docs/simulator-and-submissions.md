@@ -34,6 +34,16 @@ The inputs are:
 - `n_device`: number of expert-parallel devices;
 - `n_red_expert`: number of redundant physical expert slots.
 
+Each `hotness[t]` is one aggregated simulator timestep with shape `(n_layers, n_experts)`.
+It is not an epoch and is not guaranteed to correspond to exactly one request. The API does not
+expose how many tokens, requests, sequence positions, or raw routing events contributed to a
+timestep.
+
+The window contains only the most recent `collection_window` timesteps. If a submission needs
+longer history, it may keep bounded module-level state in `submission.py`. That state can persist
+across `rebalance` calls within the evaluator process, so key or reset it by model shape and
+expert-parallel setting instead of assuming a fresh process for every dataset, model, or EP case.
+
 The return value is:
 
 ```python
@@ -47,6 +57,15 @@ The return value is:
 ```
 
 It maps every layer, device, and physical expert slot to a logical expert id.
+
+`layers_priority` selects which layer rows from `deployment_table` are applied, and in what order.
+For each selected layer, `deployment_table[layer]` is a full replacement placement for all physical
+expert slots in that layer, not only the redundant replicas. Every logical expert must appear at
+least once in each redeployed layer; repeated logical expert ids are replicas, while omitted ids
+make the placement invalid.
+
+Redeployment cost is counted slot by slot. Reordering experts without changing the replica counts
+can still increase transmit amount, so preserve existing placements when possible.
 
 ## Smoke Submission
 
