@@ -113,9 +113,9 @@ come from forcing balance directly through an auxiliary objective.
 
 ## Relation To The Competition Simulator
 
-The simulator does not run token-level routing. Instead, it consumes traces that summarize expert
-hotness over time. A hot expert is one that the router selected frequently or heavily in a time
-window.
+The simulator does not expose token-level routing to submissions. Instead, participants receive
+traces that summarize expert hotness over simulator timesteps. A hot expert is one that the router
+selected frequently or heavily in the aggregated trace data.
 
 Given these hotness traces, a placement policy must decide:
 
