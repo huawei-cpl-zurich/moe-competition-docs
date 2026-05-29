@@ -16,5 +16,6 @@ transformers-intro
 mixture-of-experts
 deepseek-moe-routing
 competition-context
+simulator-and-submissions
 references
 ```
